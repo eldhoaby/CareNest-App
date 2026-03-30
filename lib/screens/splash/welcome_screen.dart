@@ -1,116 +1,123 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_constants.dart';
 import '../auth/role_selection_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
-  void _navigate(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
           // Background Image
-          SizedBox.expand(
-            child: Image.asset(
-              'assets/images/safenest_bg.jpg.jpeg',
-              fit: BoxFit.cover,
-            ),
+          Image.asset(
+            'assets/images/welcome_bg.png',
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              );
+            },
           ),
-
-          // Dark Gradient Overlay
+          
+          // Gradient Overlay
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.25),
-                  const Color(0xFF0F172A).withValues(alpha: 0.75),
+                  const Color(0xFF0F172A).withValues(alpha: 0.1),
+                  const Color(0xFF0F172A).withValues(alpha: 0.6),
+                  const Color(0xFF0F172A).withValues(alpha: 0.95),
                 ],
+                stops: const [0.0, 0.4, 1.0],
               ),
             ),
           ),
-
+          
           // Content
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Spacer(),
-
-                const Text(
-                  'Care That Never Sleeps',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    height: 1.2,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                const Text(
-                  'Smart monitoring powered by advanced sensors.\n'
-                  'Instant alerts when safety matters most.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    height: 1.5,
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () => _navigate(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(35),
-                      ),
-                    ),
-                    child: const Text(
-                      'GET STARTED',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A8A),
-                        letterSpacing: 1.2,
-                      ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Care That Never Sleeps.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Text(
-                  AppConstants.appName,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.5),
-                    letterSpacing: 2,
+                  const SizedBox(height: 20),
+                  Text(
+                    'Intelligent monitoring powered by advanced sensors.\nInstant alerts when safety is at risk.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      height: 1.5,
+                      letterSpacing: 0.2,
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 25),
-              ],
+                  const SizedBox(height: 48),
+                  
+                  // Get Started Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navigate to Role Selection smoothly
+                        Navigator.pushReplacement(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => const RoleSelectionScreen(),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              var curve = Curves.easeOutCubic;
+                              var tween = Tween(begin: const Offset(1.0, 0.0), end: Offset.zero).chain(CurveTween(curve: curve));
+                              return SlideTransition(position: animation.drive(tween), child: child);
+                            },
+                            transitionDuration: const Duration(milliseconds: 500),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1E1B4B),
+                        elevation: 8,
+                        shadowColor: Colors.black.withValues(alpha: 0.25),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'GET STARTED',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ],

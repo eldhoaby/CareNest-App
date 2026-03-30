@@ -3,7 +3,7 @@ class AppConstants {
 
   // ── App Info ─────────────────────────────────────────────
   static const String appName = 'SmartNest';
-  static const String appTagline = 'Smart Care for Safer Living';
+  static const String appTagline = 'Care That Never Sleeps';
 
   // ── Firebase Collections ─────────────────────────────────
   static const String usersCollection = 'users';

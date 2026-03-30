@@ -254,6 +254,53 @@ class FirebaseService {
     return snapshot.docs.first.id;
   }
 
+  /// Look up caregiver by phone number
+  Future<String?> lookupCaregiverByPhone(String phone) async {
+    final snapshot = await _db
+        .collection(AppConstants.usersCollection)
+        .where('phone', isEqualTo: phone)
+        .where('role', isEqualTo: 'caregiver')
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+    return snapshot.docs.first.id;
+  }
+
+  /// Send a link request
+  Future<void> sendLinkRequest({
+    required String fromUid,
+    required String toUid,
+    required String fromRole,
+  }) async {
+    await _db.collection('link_requests').add({
+      'fromUid': fromUid,
+      'toUid': toUid,
+      'fromRole': fromRole,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Auto-link using invite code
+  Future<bool> tryAutoLinkWithCode(String code, String currentRole) async {
+    if (currentUid == null) return false;
+    
+    // Caregiver entering Elderly code
+    if (currentRole == 'caregiver') {
+      final elderlyUid = await lookupInviteCode(code);
+      if (elderlyUid != null) {
+        await _db.collection(AppConstants.usersCollection).doc(currentUid).update({
+          'linkedElderlyUid': elderlyUid
+        });
+        await clearInviteCode(elderlyUid);
+        return true;
+      }
+    }
+    // Elderly entering Caregiver code (if supported)
+    return false;
+  }
+
   // ─────────────────────────────────────────────
   // SETUP / ONBOARDING
   // ─────────────────────────────────────────────
