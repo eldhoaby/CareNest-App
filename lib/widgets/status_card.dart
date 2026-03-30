@@ -1,7 +1,6 @@
-// lib/widgets/status_card.dart - SafeNest Production Status Cards
+// lib/widgets/status_card.dart
 import 'package:flutter/material.dart';
 import 'package:aal_app/core/theme/app_theme.dart';
-import 'package:aal_app/core/constants/app_colors.dart';
 
 class StatusCard extends StatelessWidget {
   final String label;
@@ -23,12 +22,13 @@ class StatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: SafeNestTheme.glassCard(color),
+      decoration: SmartNestTheme.glassCard(color),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 48, color: color),
           const SizedBox(height: 16),
+
           Text(
             value,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -36,22 +36,26 @@ class StatusCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+
           const SizedBox(height: 8),
+
           Text(
             label,
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey[600],
+              color: Colors.grey.shade600,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
           ),
+
           if (isWarning == true)
             Container(
               margin: const EdgeInsets.only(top: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
+                color: Colors.orange.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(

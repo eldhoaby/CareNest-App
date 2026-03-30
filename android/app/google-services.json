@@ -1,13 +1,14 @@
 {
   "project_info": {
-    "project_number": "243137247009",
-    "project_id": "safenest-d7241",
-    "storage_bucket": "safenest-d7241.firebasestorage.app"
+    "project_number": "125835803479",
+    "firebase_url": "https://aal-app-ffaf3-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "aal-app-ffaf3",
+    "storage_bucket": "aal-app-ffaf3.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:243137247009:android:7a1bdbe370640efea8f060",
+        "mobilesdk_app_id": "1:125835803479:android:66ff1b620c0f4bac9e9c12",
         "android_client_info": {
           "package_name": "com.example.aal_app"
         }
@@ -15,7 +16,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAFKa7a64Zjf7jsuw1hucDx8jmJWVBdb3Y"
+          "current_key": "AIzaSyDYv73yGzY9uykDC7wtc8d_H6-dWii4yVI"
         }
       ],
       "services": {

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../core/constants/app_constants.dart';
+import '../../core/services/firebase_service.dart';
+import '../../core/services/alert_service.dart';
+import '../auth/role_selection_screen.dart';
 import 'elderly_home_tab.dart';
+import 'elderly_alerts_tab.dart';
 import 'elderly_profile_tab.dart';
 
 class ElderlyDashboard extends StatefulWidget {
@@ -12,205 +16,163 @@ class ElderlyDashboard extends StatefulWidget {
   State<ElderlyDashboard> createState() => _ElderlyDashboardState();
 }
 
-class _ElderlyDashboardState extends State<ElderlyDashboard>
-    with TickerProviderStateMixin {
+class _ElderlyDashboardState extends State<ElderlyDashboard> {
+  int _currentTab = 0;
 
-  int _selectedIndex = 0;
-  bool _isSOSPressed = false;
-  String userName = "";
+  String userName = '';
+  String userEmail = '';
+  String userId = '';
   bool isLoading = true;
-
-  late AnimationController _sosController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    _initialize();
+    _loadProfile();
   }
 
-  Future<void> _initialize() async {
-    await _loadUserName();
-
-    _sosController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    );
-
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _sosController, curve: Curves.easeInOut),
-    );
-
-    setState(() => isLoading = false);
-  }
-
-  Future<void> _loadUserName() async {
+  Future<void> _loadProfile() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+      final profile = await FirebaseService.instance.getUserProfile();
 
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      if (profile != null && mounted) {
+        setState(() {
+          userName = profile['name'] ?? '';
+          userEmail = profile['email'] ?? '';
+          userId = profile['uid'] ??
+              FirebaseService.instance.currentUid ??
+              '';
+        });
 
-      if (doc.exists) {
-        userName = doc.data()?['name'] ?? "";
+        // Start alert monitoring
+        AlertService.instance.startMonitoring(
+          elderlyUid: userId,
+          elderlyName: userName,
+        );
       }
     } catch (e) {
-      debugPrint("Error loading user name: $e");
+      debugPrint('Profile load error: $e');
     }
+
+    if (mounted) setState(() => isLoading = false);
+  }
+
+  Future<void> _logout() async {
+    AlertService.instance.stopMonitoring();
+    await FirebaseService.instance.logout();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+      (_) => false,
+    );
   }
 
   @override
   void dispose() {
-    _sosController.dispose();
+    AlertService.instance.stopMonitoring();
     super.dispose();
   }
 
-  Future<void> _triggerSOS() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-
-      await FirebaseFirestore.instance.collection('alerts').add({
-        'uid': user.uid,
-        'type': 'SOS',
-        'timestamp': Timestamp.now(),
-        'status': 'active',
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("🚨 Emergency Alert Sent!"),
-          backgroundColor: Colors.red,
-        ),
-      );
-
-    } catch (e) {
-      debugPrint("SOS error: $e");
-    }
-  }
-
-  List<Widget> get _pages => [
-    ElderlyHomeTab(userName: userName),
-    const ElderlyProfileTab(),
-  ];
-
   @override
   Widget build(BuildContext context) {
-
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+    final tabs = [
+      ElderlyHomeTab(userName: userName, userId: userId),
+      ElderlyAlertsTab(userId: userId),
+      ElderlyProfileTab(
+        userName: userName,
+        userEmail: userEmail,
+        onLogout: _logout,
+      ),
+    ];
 
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F4FF),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: Row(
           children: [
-            const Text(
-              "SafeNest",
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.shield_rounded,
+                color: Colors.white,
+                size: 20,
               ),
             ),
-            if (userName.isNotEmpty)
-              Text(
-                "Welcome, $userName",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  AppConstants.appName,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1E1B4B),
+                  ),
                 ),
-              ),
+                Text(
+                  'Elderly · ${userName.isEmpty ? "User" : userName}',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _pages[_selectedIndex],
+        duration: const Duration(milliseconds: 250),
+        child: KeyedSubtree(
+          key: ValueKey(_currentTab),
+          child: tabs[_currentTab],
+        ),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        onTap: (index) {
+        currentIndex: _currentTab,
+        selectedItemColor: const Color(0xFF2563EB),
+        unselectedItemColor: Colors.grey[400],
+        backgroundColor: Colors.white,
+        elevation: 16,
+        type: BottomNavigationBarType.fixed,
+        onTap: (i) {
           HapticFeedback.selectionClick();
-          setState(() => _selectedIndex = index);
+          setState(() => _currentTab = i);
         },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: "Home",
+            activeIcon: Icon(Icons.home_rounded),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_outlined),
+            activeIcon: Icon(Icons.notifications_rounded),
+            label: 'Alerts',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
-            label: "Profile",
+            label: 'Profile',
           ),
         ],
-      ),
-
-      floatingActionButton: _buildSOSButton(),
-      floatingActionButtonLocation:
-      FloatingActionButtonLocation.centerDocked,
-    );
-  }
-
-  Widget _buildSOSButton() {
-    return GestureDetector(
-      onLongPressStart: (_) {
-        setState(() => _isSOSPressed = true);
-        _sosController.repeat(reverse: true);
-        HapticFeedback.mediumImpact();
-      },
-      onLongPressEnd: (_) async {
-        setState(() => _isSOSPressed = false);
-        _sosController.stop();
-        _sosController.reset();
-        await _triggerSOS();
-      },
-      child: AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _isSOSPressed ? _pulseAnimation.value : 1.0,
-            child: Container(
-              width: 85,
-              height: 85,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const RadialGradient(
-                  colors: [
-                    Color(0xFFEF4444),
-                    Color(0xFFDC2626),
-                  ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.red.withOpacity(0.5),
-                    blurRadius: _isSOSPressed ? 45 : 25,
-                    spreadRadius: _isSOSPressed ? 6 : 2,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.sos,
-                size: 40,
-                color: Colors.white,
-              ),
-            ),
-          );
-        },
       ),
     );
   }

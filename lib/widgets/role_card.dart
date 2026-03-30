@@ -71,7 +71,7 @@ class _RoleCardState extends State<RoleCard>
           child: Material(
             elevation: _elevationAnimation.value,
             borderRadius: BorderRadius.circular(24),
-            shadowColor: widget.color.withOpacity(0.3),
+            shadowColor: widget.color.withValues(alpha: 0.3),
             child: InkWell(
               borderRadius: BorderRadius.circular(24),
               onTap: widget.onTap,
@@ -84,7 +84,7 @@ class _RoleCardState extends State<RoleCard>
                   borderRadius: BorderRadius.circular(24),
                   gradient: LinearGradient(
                     colors: [
-                      widget.color.withOpacity(0.08),
+                      widget.color.withValues(alpha: 0.08),
                       Colors.white,
                     ],
                     begin: Alignment.topLeft,
@@ -98,7 +98,7 @@ class _RoleCardState extends State<RoleCard>
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: widget.color.withOpacity(0.15),
+                        color: widget.color.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

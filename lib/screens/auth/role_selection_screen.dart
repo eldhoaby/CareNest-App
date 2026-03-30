@@ -1,59 +1,28 @@
 import 'package:flutter/material.dart';
-import '../../widgets/role_card.dart';
+import '../../core/constants/app_constants.dart';
 import 'login_screen.dart';
 
-class RoleSelectionScreen extends StatefulWidget {
+class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
 
-  @override
-  State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
-}
-
-class _RoleSelectionScreenState extends State<RoleSelectionScreen>
-    with SingleTickerProviderStateMixin {
-
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-
-    _fadeAnimation =
-        CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _navigateToLogin(String role) {
+  void _goToLogin(BuildContext context, String role) {
     Navigator.push(
       context,
       PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 350),
         pageBuilder: (_, __, ___) => LoginScreen(role: role),
         transitionsBuilder: (_, animation, __, child) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOutCubic,
-            )),
-            child: child,
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween(
+                begin: const Offset(0, 0.08),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
           );
         },
-        transitionDuration: const Duration(milliseconds: 500),
       ),
     );
   }
@@ -61,91 +30,166 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFFF5F7FA),
-                Color(0xFFE3ECF7),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+      backgroundColor: const Color(0xFFF4F6FA),
+      body: Stack(
+        children: [
+          // Decorative Gradient Header
+          Positioned(
+            top: -120,
+            left: -80,
+            right: -80,
+            child: Container(
+              height: 260,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF2A7FFF), Color(0xFF6AA6FF)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(200),
+                  bottomRight: Radius.circular(200),
+                ),
+              ),
             ),
           ),
-          child: SafeArea(
+
+          SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
+                  const SizedBox(height: 60),
 
-                  const SizedBox(height: 40),
-
-                  // 🔷 Header
                   const Text(
-                    "Choose Your Access",
+                    'Choose Your Access',
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 30,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      letterSpacing: -0.6,
+                      color: Colors.white,
                     ),
                   ),
 
                   const SizedBox(height: 10),
 
-                  Text(
-                    "Care That Never Sleeps.",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
+                  const Text(
+                    'Select your role to continue',
+                    style: TextStyle(fontSize: 16, color: Colors.white70),
                   ),
 
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 60),
 
-                  // 👥 Role Cards
-                  Expanded(
-                    child: Column(
-                      children: [
+                  _roleCard(
+                    context,
+                    role: 'elderly',
+                    title: 'Elderly / Patient',
+                    subtitle: 'Personal safety monitoring',
+                    icon: Icons.person_outline,
+                    color: const Color(0xFF2563EB),
+                    bgColor: const Color(0xFFE8F0FF),
+                  ),
 
-                        RoleCard(
-                          title: 'Elderly / Patient',
-                          subtitle: 'Personal safety monitoring',
-                          icon: Icons.person,
-                          color: Colors.blue,
-                          onTap: () => _navigateToLogin("Elderly"),
-                        ),
+                  const SizedBox(height: 18),
 
-                        const SizedBox(height: 24),
+                  _roleCard(
+                    context,
+                    role: 'caregiver',
+                    title: 'Caregiver / Family',
+                    subtitle: 'Monitor loved ones & receive alerts',
+                    icon: Icons.favorite_outline,
+                    color: const Color(0xFF22C55E),
+                    bgColor: const Color(0xFFEAFBF1),
+                  ),
 
-                        RoleCard(
-                          title: 'Caregiver / Family',
-                          subtitle: 'Monitor loved ones & receive alerts',
-                          icon: Icons.family_restroom,
-                          color: Colors.green,
-                          onTap: () => _navigateToLogin("Caregiver"),
-                        ),
+                  const SizedBox(height: 18),
 
-                        const SizedBox(height: 24),
+                  _roleCard(
+                    context,
+                    role: 'emergency',
+                    title: 'Emergency Services',
+                    subtitle: 'Respond instantly to safety alerts',
+                    icon: Icons.local_hospital_outlined,
+                    color: const Color(0xFFEF4444),
+                    bgColor: const Color(0xFFFFF1F1),
+                  ),
 
-                        RoleCard(
-                          title: 'Emergency Services',
-                          subtitle: 'Respond instantly to safety alerts',
-                          icon: Icons.local_hospital,
-                          color: Colors.red,
-                          onTap: () => _navigateToLogin("Emergency"),
-                        ),
+                  const Spacer(),
 
-                      ],
-                    ),
+                  Text(
+                    '${AppConstants.appName} AAL System',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
                   ),
 
                   const SizedBox(height: 20),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _roleCard(
+    BuildContext context, {
+    required String role,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required Color bgColor,
+  }) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(22),
+      elevation: 5,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: () => _goToLogin(context, role),
+        child: Container(
+          padding: const EdgeInsets.all(22),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 26),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Color(0xFF94A3B8),
+              ),
+            ],
           ),
         ),
       ),
