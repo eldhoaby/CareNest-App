@@ -70,12 +70,14 @@ CareNest/
 
 ## 📸 Screenshots
 
-*(Placeholders for application screenshots. Add your actual screenshots to the `assets/screenshots/` directory.)*
-
 <div align="center">
-  <img src="assets/screenshots/placeholder1.png" alt="Dashboard" width="200" style="margin: 10px;"/>
-  <img src="assets/screenshots/placeholder2.png" alt="Alerts" width="200" style="margin: 10px;"/>
-  <img src="assets/screenshots/placeholder3.png" alt="Monitoring" width="200" style="margin: 10px;"/>
+  <img src="assets/screenshots/landing.png" alt="Landing Page" width="200" style="margin: 10px;"/>
+  <img src="assets/screenshots/login.png" alt="Login" width="200" style="margin: 10px;"/>
+  <img src="assets/screenshots/dashboard.png" alt="Dashboard" width="200" style="margin: 10px;"/>
+  <br/>
+  <img src="assets/screenshots/emergency-alerts.png" alt="Emergency Alerts" width="200" style="margin: 10px;"/>
+  <img src="assets/screenshots/notifications.png" alt="Notifications" width="200" style="margin: 10px;"/>
+  <img src="assets/screenshots/sensor-monitoring.png" alt="Sensor Monitoring" width="200" style="margin: 10px;"/>
 </div>
 
 ## 🚀 Getting Started
