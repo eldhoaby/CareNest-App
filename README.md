@@ -76,9 +76,74 @@ The CareNest platform is designed for high availability and fault tolerance, sep
 3. **Application Layer (Flutter):** Subscribes to document snapshots to render UI dynamically based on the elder's state.
 4. **Administrative Layer (React & Node):** Handles heavy aggregation, user management, and secure webhook processing.
 
+```mermaid
+flowchart TD
+    %% Define Styles
+    classDef hardware fill:#2d3436,stroke:#b2bec3,stroke-width:2px,color:#dfe6e9;
+    classDef backend fill:#0984e3,stroke:#74b9ff,stroke-width:2px,color:#ffffff;
+    classDef database fill:#e17055,stroke:#fab1a0,stroke-width:2px,color:#ffffff;
+    classDef mobile fill:#00b894,stroke:#55efc4,stroke-width:2px,color:#ffffff;
+    classDef service fill:#6c5ce7,stroke:#a29bfe,stroke-width:2px,color:#ffffff;
+    classDef web fill:#fdcb6e,stroke:#ffeaa7,stroke-width:2px,color:#2d3436;
+
+    %% IoT Edge Tier
+    subgraph IoT_Edge ["🔌 IoT Edge Layer (Hardware)"]
+        Sensors["Sensors (PIR, Temp, ECG)"]:::hardware
+        ESP["Microcontroller (ESP32/8266)"]:::hardware
+        Sensors --> ESP
+    end
+
+    %% Network / Broker
+    subgraph Network ["🌐 Networking Protocol"]
+        MQTT["MQTT Broker (Telemetry Streams)"]:::backend
+        ESP -- "Publishes Data" --> MQTT
+    end
+
+    %% Cloud Infrastructure Tier
+    subgraph Cloud ["☁️ Cloud Infrastructure (Firebase)"]
+        Firestore[("Firestore (Real-time DB)")]:::database
+        Auth["Firebase Auth (Identity)"]:::database
+        FCM["Firebase Cloud Messaging"]:::database
+        
+        MQTT -- "Ingestion Worker writes to" --> Firestore
+    end
+
+    %% Application Core Services (Extracted from lib/core/services)
+    subgraph Mobile_Core ["⚙️ Flutter Core Services"]
+        FirebaseSvc["FirebaseService"]:::service
+        AlertSvc["AlertService / CacheService"]:::service
+        NotifSvc["NotificationService / SoundService"]:::service
+        
+        Firestore -- "Snapshot Listeners" --> FirebaseSvc
+        FirebaseSvc --> AlertSvc
+        FCM -- "Push Notifications" --> NotifSvc
+        AlertSvc --> NotifSvc
+    end
+
+    %% Presentation Layer (Extracted from lib/screens)
+    subgraph Presentation ["📱 Presentation Layer (Flutter App)"]
+        ElderlyUI["Elderly Screens (Dashboard, Activity)"]:::mobile
+        CaregiverUI["Caregiver Screens (Monitoring, Alerts)"]:::mobile
+        EmergencyUI["Emergency Override Module"]:::mobile
+        
+        Auth -. "Authenticates" .-> ElderlyUI
+        Auth -. "Authenticates" .-> CaregiverUI
+        
+        AlertSvc --> ElderlyUI
+        AlertSvc --> CaregiverUI
+        ElderlyUI -- "Triggers SOS" --> EmergencyUI
+        EmergencyUI -- "Writes Emergency State" --> Firestore
+    end
+
+    %% Web Admin Layer
+    subgraph Web_Admin ["💻 Administrative Layer"]
+        ReactUI["React Admin Dashboard"]:::web
+        Firestore -- "Aggregated Analytics" --> ReactUI
+    end
+```
+
 <div align="center">
-  <img src="assets/architecture/system-design-placeholder.png" alt="Architecture Diagram" width="80%" style="border-radius:10px; margin-top:20px;"/>
-  <p><i>Refer to the <a href="./docs/system-design.md">Detailed System Design</a> for comprehensive diagrams.</i></p>
+  <p><i>Refer to the <a href="./docs/system-design.md">Detailed System Design</a> for layer breakdowns and scalability factors.</i></p>
 </div>
 
 ---
