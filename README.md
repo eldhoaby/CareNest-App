@@ -1,10 +1,4 @@
 <div align="center">
-  <img src="assets/banner/banner.png" alt="CareNest Banner" width="100%" style="border-radius:10px;"/>
-</div>
-
-<br/>
-
-<div align="center">
 
 # 🏥 CareNest
 ### Next-Generation Ambient Assisted Living & Healthcare System
