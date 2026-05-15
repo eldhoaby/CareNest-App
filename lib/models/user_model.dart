@@ -25,6 +25,7 @@ class UserModel {
   final String? inviteCode;
   final String? caregiverPhone;
   final bool locationSharing;
+  final String? address;
 
   // ── Caregiver Fields ─────────────────
   final String? linkedElderlyUid;
@@ -60,6 +61,7 @@ class UserModel {
     this.inviteCode,
     this.caregiverPhone,
     this.locationSharing = false,
+    this.address,
     this.linkedElderlyUid,
     this.relationship,
     this.organizationName,
@@ -83,14 +85,15 @@ class UserModel {
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       dateOfBirth: map['dateOfBirth'],
       gender: map['gender'],
-      medicalConditions: map['medicalConditions'],
-      mobilityStatus: map['mobilityStatus'],
+      medicalConditions: map['medicalConditions'] ?? 'Not Available',
+      mobilityStatus: map['mobilityStatus'] ?? 'Not Available',
       emergencyContactName: map['emergencyContactName'],
       emergencyContactPhone: map['emergencyContactPhone'],
       bloodGroup: map['bloodGroup'],
       inviteCode: map['inviteCode'],
       caregiverPhone: map['caregiverPhone'],
       locationSharing: map['locationSharing'] ?? false,
+      address: map['address'] ?? 'Not Available',
       linkedElderlyUid: map['linkedElderlyUid'],
       relationship: map['relationship'],
       organizationName: map['organizationName'],

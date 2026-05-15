@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import 'welcome_screen.dart';
 import '../elderly/elderly_dashboard.dart';
@@ -39,38 +41,62 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
-    _navigate();
+
+    // Use addPostFrameCallback to ensure context is fully available
+    // before attempting navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigate();
+    });
   }
 
-  void _navigate() async {
-    await Future.delayed(const Duration(milliseconds: 2500));
+  Future<void> _navigate() async {
+    // Show splash branding for at least 2 seconds
+    await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
 
     final user = FirebaseAuth.instance.currentUser;
+    debugPrint('🔍 Splash: currentUser = ${user?.uid ?? "null"}');
+
     if (user != null) {
       try {
+        // Timeout after 3 seconds — never freeze the splash screen
         final doc = await FirebaseFirestore.instance
             .collection(AppConstants.usersCollection)
             .doc(user.uid)
-            .get();
+            .get()
+            .timeout(const Duration(seconds: 3));
 
         if (!mounted) return;
 
         if (doc.exists) {
           final role = (doc.data()?['role'] as String? ?? '').toLowerCase();
+          debugPrint('🔍 Splash: user found, role = $role → navigating to dashboard');
           _navigateByRole(role);
           return;
+        } else {
+          debugPrint('🔍 Splash: user doc does NOT exist → WelcomeScreen');
         }
+      } on TimeoutException {
+        debugPrint('🔍 Splash: Firestore timeout → WelcomeScreen');
       } catch (e) {
-        debugPrint('Splash auth check error: $e');
+        debugPrint('🔍 Splash: auth check error ($e) → WelcomeScreen');
       }
+    } else {
+      debugPrint('🔍 Splash: no user logged in → WelcomeScreen');
     }
 
+    // Fallback: always navigate to WelcomeScreen
     if (!mounted) return;
+    _navigateToWelcome();
+  }
+
+  void _navigateToWelcome() {
+    debugPrint('🔍 Splash: → Navigating to WelcomeScreen');
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const WelcomeScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const WelcomeScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -96,7 +122,8 @@ class _SplashScreenState extends State<SplashScreen>
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => destination,
-        transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }
@@ -110,75 +137,75 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: child,
-              ),
-            );
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Premium Logo Concept
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6366F1).withValues(alpha: 0.15),
-                      blurRadius: 30,
-                      offset: const Offset(0, 10),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.splashGradient,
+        ),
+        child: Center(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Premium Consistent Circular Logo
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Center(
-                  child: Image.asset(
-                    'assets/images/safenest_logo.png', // Assuming exist
-                    width: 70,
-                    height: 70,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.favorite, size: 60, color: Color(0xFF6366F1)),
+                    child: ClipOval(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Image.asset(
+                          'assets/images/safenest_logo.png',
+                          width: 68,
+                          height: 68,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.favorite_rounded,
+                                  size: 32, color: AppColors.primary),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 24),
+
+                  // App Name
+                  Text(
+                    AppConstants.appName,
+                    style:
+                        Theme.of(context).textTheme.headlineLarge?.copyWith(
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Tagline
+                  Text(
+                    AppConstants.appTagline,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          letterSpacing: 0.5,
+                        ),
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 32),
-              
-              // App Name
-              const Text(
-                AppConstants.appName,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  color: Color(0xFF1E1B4B),
-                  fontFamily: 'Inter', // Or system default bold
-                ),
-              ),
-              
-              const SizedBox(height: 8),
-              
-              // Tagline
-              const Text(
-                AppConstants.appTagline,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF6B7280),
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

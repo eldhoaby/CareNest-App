@@ -1,0 +1,3 @@
+[error] Undefined name 'SensorDataModel' (D:\aal_app\lib\screens\caregiver\caregiver_dashboard.dart:235:28)
+[error] The method 'getCombinedAlertsStream' isn't defined for the type 'AlertService' (D:\aal_app\lib\screens\caregiver\caregiver_dashboard.dart:587:45)
+[error] The getter 'resolved' isn't defined for the type 'AlertModel' (D:\aal_app\lib\screens\caregiver\caregiver_dashboard.dart:603:50)

@@ -1,0 +1,17 @@
+
+  error - The named parameter 'userName' isn't defined - lib\screens\auth\login_screen.dart:185:11 - undefined_named_parameter
+  error - Undefined name 'profile' - lib\screens\auth\login_screen.dart:185:21 - undefined_identifier
+  error - The named parameter 'userEmail' isn't defined - lib\screens\auth\login_screen.dart:186:11 - undefined_named_parameter
+  error - Undefined name 'profile' - lib\screens\auth\login_screen.dart:186:22 - undefined_identifier
+warning - Unused import: '../../models/alert_model.dart' - lib\screens\caregiver\caregiver_activity_tab.dart:7:8 - unused_import
+warning - The value of the field '_sensorData' isn't used - lib\screens\caregiver\caregiver_activity_tab.dart:21:14 - unused_field
+warning - The value of the field '_lastMotionTime' isn't used - lib\screens\caregiver\caregiver_activity_tab.dart:26:13 - unused_field
+   info - Unnecessary escape in string literal - lib\screens\caregiver\caregiver_activity_tab.dart:83:45 - unnecessary_string_escapes
+   info - Unnecessary use of 'toList' in a spread - lib\screens\caregiver\caregiver_activity_tab.dart:280:15 - unnecessary_to_list_in_spreads
+  error - The method 'compareTo' can't be unconditionally invoked because the receiver can be 'null' - lib\screens\caregiver\caregiver_alert_tab.dart:111:49 - unchecked_use_of_nullable_value
+  error - The argument type 'DateTime?' can't be assigned to the parameter type 'DateTime'.  - lib\screens\caregiver\caregiver_alert_tab.dart:111:59 - argument_type_not_assignable
+  error - The method 'signOut' isn't defined for the type 'FirebaseService' - lib\screens\caregiver\caregiver_dashboard.dart:32:42 - undefined_method
+  error - The named parameter 'role' is required, but there's no corresponding argument - lib\screens\caregiver\caregiver_dashboard.dart:36:53 - missing_required_argument
+  error - Arguments of a constant creation must be constant expressions - lib\screens\caregiver\caregiver_profile_tab.dart:477:31 - const_with_non_constant_argument
+  error - Arguments of a constant creation must be constant expressions - lib\screens\caregiver\caregiver_profile_tab.dart:501:31 - const_with_non_constant_argument
+

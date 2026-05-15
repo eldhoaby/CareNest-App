@@ -1,0 +1,8 @@
+Analyzing lib...                                                
+
+warning - The left operand can't be null, so the right operand is never executed - lib\screens\caregiver\caregiver_activity_tab.dart:395:46 - dead_null_aware_expression
+   info - The private field _hasAmbulance could be 'final' - lib\screens\setup\emergency_setup_screen.dart:33:8 - prefer_final_fields
+warning - The value of the field '_hasAmbulance' isn't used - lib\screens\setup\emergency_setup_screen.dart:33:8 - unused_field
+warning - The declaration '_step3Valid' isn't referenced - lib\screens\setup\emergency_setup_screen.dart:35:12 - unused_element
+
+4 issues found. (ran in 1.8s)

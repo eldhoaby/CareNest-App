@@ -22,7 +22,10 @@ class StatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: SmartNestTheme.glassCard(color),
+      decoration: SmartNestTheme.glassCardDecoration(context).copyWith(
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+        color: color.withValues(alpha: 0.05),
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

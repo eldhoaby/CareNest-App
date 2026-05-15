@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
 import '../constants/app_constants.dart';
@@ -17,6 +19,7 @@ class FirebaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FirebaseDatabase _rtdb = FirebaseDatabase.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // ─────────────────────────────────────────────
   // CURRENT USER
@@ -142,6 +145,13 @@ class FirebaseService {
     return _db
         .collection(AppConstants.usersCollection)
         .doc(currentUid)
+        .snapshots();
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> userProfileStreamById(String uid) {
+    return _db
+        .collection(AppConstants.usersCollection)
+        .doc(uid)
         .snapshots();
   }
 
@@ -333,39 +343,140 @@ class FirebaseService {
   // ALERTS
   // ─────────────────────────────────────────────
 
-  /// Create a new alert
-  Future<void> createAlert({
+  /// Create a new alert and return optimistic AlertModel
+  Future<AlertModel> createAlert({
     required String userId,
     String? elderlyName,
-    required AlertType type,
+    required String type,
     required AlertPriority priority,
     required String description,
   }) async {
+    // Fetch address for emergency response profiling
+    String? finalAddress;
+    try {
+      final doc = await _db.collection(AppConstants.usersCollection).doc(userId).get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null && data['address'] != null) {
+          finalAddress = data['address'];
+        }
+      }
+    } catch (_) {}
+
     final alertData = AlertModel(
       id: '',
-      userId: userId,
+      elderlyId: userId,
       elderlyName: elderlyName,
+      address: finalAddress,
       type: type,
       priority: priority,
       description: description,
       status: AlertStatus.active,
     );
 
-    await _db
+    final docRef = await _db
         .collection(AppConstants.alertsCollection)
         .add(alertData.toMap());
+        
+    return alertData.copyWith(
+      id: docRef.id,
+      timestamp: DateTime.now(),
+    );
   }
 
-  /// Stream alerts for a specific elderly user
-  Stream<QuerySnapshot> alertsStream(String elderlyUid) {
-    return _db
+  /// Stream alerts for a specific elderly user (DEPRECATED, use alertsForElderliesStream)
+  Stream<QuerySnapshot> alertsStream(String elderlyUid, {DateTime? date}) {
+    return alertsForElderliesStream([elderlyUid], date: date);
+  }
+
+  /// Stream alerts for MULTIPLE elderly users
+  ///
+  /// NOTE: Date filtering is done client-side because Firestore cannot combine
+  /// Filter.or() with inequality range filters on a different field (timestamp).
+  /// Combining them causes the query to silently fail / never emit.
+  Stream<QuerySnapshot> alertsForElderliesStream(List<String> elderlyUids, {DateTime? date}) {
+    if (elderlyUids.isEmpty) {
+      return const Stream.empty();
+    }
+
+    // When querying for a single user (most common), use Filter.or to match
+    // alerts stored under EITHER 'elderlyId' or 'userId' field — external
+    // sensor systems may write to either field.
+    if (elderlyUids.length == 1) {
+      final uid = elderlyUids.first;
+
+      // NOTE: date filtering with Filter.or + inequality is not supported
+      // by Firestore, so date filtering is done client-side (same as multi-user).
+      final query = _db
+          .collection(AppConstants.alertsCollection)
+          .where(
+            Filter.or(
+              Filter('elderlyId', isEqualTo: uid),
+              Filter('userId', isEqualTo: uid),
+            ),
+          )
+          .orderBy('timestamp', descending: true)
+          .limit(50);
+
+      return query.snapshots();
+    }
+
+    // For multiple elderly UIDs, use Filter.or without date range
+    // (date filtering will be done client-side)
+    final query = _db
         .collection(AppConstants.alertsCollection)
-        .where('userId', isEqualTo: elderlyUid)
+        .where(
+          Filter.or(
+            Filter('elderlyId', whereIn: elderlyUids),
+            Filter('userId', whereIn: elderlyUids),
+          ),
+        )
         .orderBy('timestamp', descending: true)
-        .snapshots();
+        .limit(50);
+
+    return query.snapshots();
   }
 
-  /// Stream ALL active high-priority alerts (for emergency services)
+  /// FETCH alerts via .get() instead of a real-time stream
+  Future<QuerySnapshot> getAlertsForElderlies(List<String> elderlyUids, {DateTime? date, int limit = 50}) {
+    if (elderlyUids.isEmpty) {
+      throw Exception("No elderly UIDs provided");
+    }
+
+    if (elderlyUids.length == 1) {
+      final uid = elderlyUids.first;
+
+      // Use Filter.or to match both elderlyId and userId fields.
+      // Date filtering is done client-side when using Filter.or.
+      final query = _db
+          .collection(AppConstants.alertsCollection)
+          .where(
+            Filter.or(
+              Filter('elderlyId', isEqualTo: uid),
+              Filter('userId', isEqualTo: uid),
+            ),
+          )
+          .orderBy('timestamp', descending: true)
+          .limit(limit);
+
+      return query.get();
+    }
+
+    final query = _db
+        .collection(AppConstants.alertsCollection)
+        .where(
+          Filter.or(
+            Filter('elderlyId', whereIn: elderlyUids),
+            Filter('userId', whereIn: elderlyUids),
+          ),
+        )
+        .orderBy('timestamp', descending: true)
+        .limit(limit);
+
+    return query.get();
+  }
+
+  /// Stream ALL active high-priority alerts (for legacy emergency systems)
   Stream<QuerySnapshot> activeEmergencyAlerts() {
     return _db
         .collection(AppConstants.alertsCollection)
@@ -375,7 +486,27 @@ class FirebaseService {
         .snapshots();
   }
 
-  /// Stream ALL alerts (for emergency history)
+  /// Global Active Alerts Stream (for updated Emergency Dashboard)
+  Stream<QuerySnapshot> globalActiveAlertsStream() {
+    return _db
+        .collection(AppConstants.alertsCollection)
+        .where('status', isEqualTo: 'active')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
+  }
+
+  /// Global Resolved Alerts Stream (for Emergency History Tab)
+  /// NOTE: No orderBy to avoid composite index requirement.
+  /// Sorting is done client-side in the History tab.
+  Stream<QuerySnapshot> globalResolvedAlertsStream() {
+    return _db
+        .collection(AppConstants.alertsCollection)
+        .where('status', isEqualTo: 'resolved')
+        .limit(100)
+        .snapshots();
+  }
+
+  /// Stream ALL alerts (for elderly/caregiver local history)
   Stream<QuerySnapshot> allAlertsStream() {
     return _db
         .collection(AppConstants.alertsCollection)
@@ -384,27 +515,70 @@ class FirebaseService {
         .snapshots();
   }
 
+  /// Stream ALL notifications (from the notifications collection)
+  Stream<QuerySnapshot> allNotificationsStream() {
+    return _db
+        .collection(AppConstants.notificationsCollection)
+        .orderBy('createdAt', descending: true)
+        .limit(100)
+        .snapshots();
+  }
+
+  /// Fetch ALL recent alerts without user filtering.
+  /// Use this when you need to capture alerts from external sensor systems
+  /// that may not set elderlyId/userId to match Firebase Auth UIDs.
+  /// Callers should apply client-side filtering for the target user(s).
+  Future<QuerySnapshot> getRecentAlerts({int limit = 200}) {
+    return _db
+        .collection(AppConstants.alertsCollection)
+        .orderBy('timestamp', descending: true)
+        .limit(limit)
+        .get();
+  }
+
+  /// Fetch ALL recent notifications without user filtering.
+  Future<QuerySnapshot> getRecentNotifications({int limit = 200}) {
+    return _db
+        .collection(AppConstants.notificationsCollection)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .get();
+  }
+
+  /// Stream activity logs for elderly users
+  Stream<QuerySnapshot> activitiesStream(List<String> elderlyUids) {
+    if (elderlyUids.isEmpty) return const Stream.empty();
+    return _db
+        .collection('activities')
+        // OR simple mode: .where('elderlyId', isEqualTo: elderlyUids.first)
+        .where('elderlyId', whereIn: elderlyUids)
+        .limit(50)
+        .snapshots();
+  }
+
   /// Respond to an alert
   Future<void> respondToAlert(String alertId, String responderUid) async {
     await _db
         .collection(AppConstants.alertsCollection)
         .doc(alertId)
-        .update({
+        .set({
       'status': 'responded',
       'respondedBy': responderUid,
       'respondedAt': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 
   /// Resolve an alert
-  Future<void> resolveAlert(String alertId) async {
+  Future<void> resolveAlert(String alertId, {String? resolverUid}) async {
+    final uid = resolverUid ?? currentUid;
     await _db
         .collection(AppConstants.alertsCollection)
         .doc(alertId)
-        .update({
+        .set({
       'status': 'resolved',
       'resolvedAt': FieldValue.serverTimestamp(),
-    });
+      if (uid != null) 'resolvedBy': uid,
+    }, SetOptions(merge: true));
   }
 
   // ─────────────────────────────────────────────
@@ -444,5 +618,120 @@ class FirebaseService {
     } catch (e) {
       debugPrint('Topic subscribe error: $e');
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // PROFILE PHOTO — Feature #7
+  // ─────────────────────────────────────────────
+
+  /// Upload profile photo to Firebase Storage and save URL in Firestore
+  Future<String> uploadProfilePhoto(File imageFile) async {
+    if (currentUid == null) throw Exception('Not logged in');
+
+    final ref = _storage.ref().child('profile_photos/$currentUid.jpg');
+    final uploadTask = await ref.putFile(
+      imageFile,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
+
+    final url = await uploadTask.ref.getDownloadURL();
+
+    // Save URL to user profile
+    await updateUserProfile({'profilePhotoUrl': url});
+
+    return url;
+  }
+
+  /// Get profile photo URL from Firestore
+  Future<String?> getProfilePhotoUrl() async {
+    final profile = await getUserProfile();
+    return profile?['profilePhotoUrl'] as String?;
+  }
+
+  // ─────────────────────────────────────────────
+  // DUAL-WRITE COLLECTIONS — Feature #10
+  //
+  // Hybrid approach: writes to both users/{uid}
+  // AND the role-specific collection.
+  // Existing code continues reading from 'users'.
+  // ─────────────────────────────────────────────
+
+  /// Get the Firestore collection name for a role
+  String _roleCollection(String role) {
+    switch (role.toLowerCase()) {
+      case 'caregiver':
+        return AppConstants.caregiversCollection;
+      case 'emergency':
+        return AppConstants.emergencyServicesCollection;
+      default:
+        return AppConstants.elderlyCollection;
+    }
+  }
+
+  /// Register user with dual-write: users + role-specific collection
+  Future<UserCredential> registerUserByRole({
+    required String email,
+    required String password,
+    required String role,
+    required Map<String, dynamic> profileData,
+  }) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final uid = credential.user!.uid;
+    final fullData = {
+      ...profileData,
+      'uid': uid,
+      'role': role,
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+
+    // Write to main users collection
+    await _db
+        .collection(AppConstants.usersCollection)
+        .doc(uid)
+        .set(fullData);
+
+    // Write to role-specific collection
+    await _db
+        .collection(_roleCollection(role))
+        .doc(uid)
+        .set(fullData);
+
+    return credential;
+  }
+
+  /// Query all elderly users (from role-specific collection)
+  Future<List<UserModel>> getElderlyUsers() async {
+    final snapshot = await _db
+        .collection(AppConstants.elderlyCollection)
+        .get();
+    return snapshot.docs.map((d) => UserModel.fromDoc(d)).toList();
+  }
+
+  /// Query all caregivers (from role-specific collection)
+  Future<List<UserModel>> getCaregivers() async {
+    final snapshot = await _db
+        .collection(AppConstants.caregiversCollection)
+        .get();
+    return snapshot.docs.map((d) => UserModel.fromDoc(d)).toList();
+  }
+
+  /// Sync existing user to role-specific collection (migration helper)
+  Future<void> syncUserToRoleCollection() async {
+    if (currentUid == null) return;
+    final profile = await getUserProfile();
+    if (profile == null) return;
+
+    final role = profile['role'] as String? ?? 'elderly';
+    final collection = _roleCollection(role);
+
+    // Write/update to role collection
+    await _db.collection(collection).doc(currentUid).set(
+      profile,
+      SetOptions(merge: true),
+    );
   }
 }

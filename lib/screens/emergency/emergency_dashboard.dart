@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/constants/app_constants.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/services/alert_notification_service.dart';
 import '../../core/services/firebase_service.dart';
+import '../../core/services/unseen_alert_service.dart';
 import '../auth/role_selection_screen.dart';
-import 'emergency_alerts_tab.dart';
+import '../caregiver/caregiver_alert_tab.dart';
 import 'emergency_history_tab.dart';
 import 'emergency_profile_tab.dart';
+import '../../widgets/global_loader.dart';
 
 class EmergencyDashboard extends StatefulWidget {
   const EmergencyDashboard({super.key});
@@ -51,6 +54,8 @@ class _EmergencyDashboardState extends State<EmergencyDashboard> {
   }
 
   Future<void> _logout() async {
+    AlertNotificationService.instance.reset();
+    await UnseenAlertService.instance.reset();
     await FirebaseService.instance.logout();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
@@ -60,105 +65,104 @@ class _EmergencyDashboardState extends State<EmergencyDashboard> {
     );
   }
 
+  void _switchTab(int index) {
+    HapticFeedback.selectionClick();
+    setState(() => _tab = index);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFFFF5F5),
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFEF4444)),
-        ),
-      );
+      return const GlobalLoader(isFullScreen: true);
     }
 
     final tabs = [
-      EmergencyAlertsTab(userId: userId),
+      const CaregiverAlertTab(isEmergency: true),
       EmergencyHistoryTab(userId: userId),
       EmergencyProfileTab(
-        userName: userName,
-        userEmail: userEmail,
-        organization: organization,
         onLogout: _logout,
       ),
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF5F5),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFEF4444),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        titleSpacing: 16,
-        title: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.local_hospital,
-                  color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '${AppConstants.appName} Emergency',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  organization.isEmpty ? 'Emergency Services' : organization,
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.7)),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: AppColors.background,
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: child,
+        ),
         child: KeyedSubtree(
           key: ValueKey(_tab),
           child: tabs[_tab],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _tab,
-        selectedItemColor: const Color(0xFFEF4444),
-        unselectedItemColor: Colors.grey[400],
-        backgroundColor: Colors.white,
-        elevation: 16,
-        type: BottomNavigationBarType.fixed,
-        onTap: (i) {
-          HapticFeedback.selectionClick();
-          setState(() => _tab = i);
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.warning_outlined),
-            activeIcon: Icon(Icons.warning_rounded),
-            label: 'Active',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_outlined),
-            activeIcon: Icon(Icons.history_rounded),
-            label: 'History',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x11000000),
+            blurRadius: 20,
+            offset: Offset(0, -4),
           ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _navItem(Icons.warning_amber_rounded, Icons.warning_rounded, 'Active', 0),
+              _navItem(Icons.history_rounded, Icons.history_rounded, 'History', 1),
+              _navItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile', 2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(IconData icon, IconData activeIcon, String label, int index) {
+    final isActive = _tab == index;
+    return GestureDetector(
+      onTap: () => _switchTab(index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.danger.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isActive ? activeIcon : icon,
+              size: 24,
+              color: isActive ? AppColors.danger : AppColors.textMuted,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+                color: isActive ? AppColors.danger : AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

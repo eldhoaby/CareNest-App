@@ -1,8 +1,13 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../../../core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_service.dart';
+import 'sound_service.dart';
+import 'in_app_notification_overlay.dart';
 
 class NotificationService {
   NotificationService._();
@@ -14,11 +19,12 @@ class NotificationService {
 
   // Android notification channel
   static const _channel = AndroidNotificationChannel(
-    'smartnest_alerts',
-    'SmartNest Alerts',
+    'alert_channel',
+    'Alerts',
     description: 'Alert notifications from SmartNest AAL system',
-    importance: Importance.high,
+    importance: Importance.max,
     playSound: true,
+    sound: RawResourceAndroidNotificationSound('alert_sound'),
     enableVibration: true,
   );
 
@@ -69,21 +75,52 @@ class NotificationService {
     }
   }
 
-  /// Handle foreground FCM messages → show local notification
-  void _handleForegroundMessage(RemoteMessage message) {
+  /// Handle foreground FCM messages → show in-app banner + play sound
+  /// WhatsApp-style: NO system notification when app is in foreground,
+  /// only the premium in-app banner.
+  Future<void> _handleForegroundMessage(RemoteMessage message) async {
     debugPrint('📩 Foreground message: ${message.messageId}');
+
+    final prefs = await SharedPreferences.getInstance();
+    final notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
+    final soundEnabled = prefs.getBool('soundEnabled') ?? true;
+
+    if (!notificationsEnabled) return;
 
     final notification = message.notification;
     if (notification == null) return;
 
-    showLocalNotification(
-      title: notification.title ?? 'SmartNest Alert',
-      body: notification.body ?? '',
-      priority: message.data['priority'] ?? 'medium',
+    final title = notification.title ?? 'Emergency Alert';
+    final body = notification.body ?? 'New alert received';
+    final priority = message.data['priority'] ?? 'high';
+    final messageId = message.messageId ?? DateTime.now().toIso8601String();
+
+    // ── Play sound immediately ──
+    if (soundEnabled) {
+      if (priority == 'high') {
+        await SoundService.instance.playAlert();
+        // Heavy vibration for critical
+        HapticFeedback.heavyImpact();
+      } else {
+        await SoundService.instance.playNotification();
+        HapticFeedback.mediumImpact();
+      }
+    }
+
+    // ── Show in-app floating banner (WhatsApp-style) ──
+    InAppNotificationOverlay.instance.show(
+      messageId: messageId,
+      title: title,
+      body: body,
+      priority: priority,
+      onTap: () {
+        // Navigation is handled by the overlay's navigatorKey
+        debugPrint('📲 In-app notification tapped: $title');
+      },
     );
   }
 
-  /// Handle notification tap
+  /// Handle notification tap (when app was in background)
   void _handleNotificationOpen(RemoteMessage message) {
     debugPrint('📲 Notification opened: ${message.notification?.title}');
     // Navigation can be handled here via a global navigator key
@@ -93,7 +130,7 @@ class NotificationService {
     debugPrint('🔔 Local notification tapped: ${response.payload}');
   }
 
-  /// Show a local notification
+  /// Show a local notification (used for background + explicit calls)
   Future<void> showLocalNotification({
     required String title,
     required String body,
@@ -107,9 +144,10 @@ class NotificationService {
       channelDescription: _channel.description,
       importance: isHigh ? Importance.max : Importance.high,
       priority: isHigh ? Priority.max : Priority.high,
-      color: isHigh ? const Color(0xFFEF4444) : const Color(0xFF2A7FFF),
+      color: isHigh ? AppColors.danger : const Color(0xFF2A7FFF),
       icon: '@mipmap/ic_launcher',
       playSound: true,
+      sound: const RawResourceAndroidNotificationSound('alert_sound'),
       enableVibration: true,
     );
 

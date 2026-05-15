@@ -1,159 +1,206 @@
 <div align="center">
-  
+  <img src="assets/banner/banner.png" alt="CareNest Banner" width="100%" style="border-radius:10px;"/>
+</div>
+
+<br/>
+
+<div align="center">
+
 # 🏥 CareNest
-### Ambient Assisted Living & Healthcare System
+### Next-Generation Ambient Assisted Living & Healthcare System
 
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Firebase](https://img.shields.io/badge/firebase-ffca28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MQTT](https://img.shields.io/badge/MQTT-3C5280?style=for-the-badge&logo=eclipse-mosquitto&logoColor=white)](https://mqtt.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-*An enterprise-grade, real-time healthcare monitoring platform designed to empower elderly care through ambient intelligence.*
+*An enterprise-grade, real-time healthcare monitoring platform designed to empower elderly care through ambient intelligence, IoT integration, and responsive data analytics.*
 
-[Report Bug](https://github.com/eldhoaby/CareNest-App/issues) · [Request Feature](https://github.com/eldhoaby/CareNest-App/issues)
+[Report Bug](https://github.com/eldhoaby/CareNest-App/issues) · [Request Feature](https://github.com/eldhoaby/CareNest-App/issues) · [Explore Documentation](./docs/README.md)
+
 </div>
 
 ---
 
-## 📖 Project Vision & Objectives
+## 📖 Why CareNest?
 
-**CareNest** is a comprehensive Ambient Assisted Living (AAL) system engineered to provide non-intrusive, real-time monitoring and support for the elderly. By combining a mobile application for real-time alerts with a robust admin dashboard for data management, CareNest aims to bridge the gap between independent living and necessary medical oversight.
+### The Problem Statement
+As the global population ages, the demand for continuous, non-intrusive elderly care has skyrocketed. Traditional caregiving is often resource-intensive and reactive rather than proactive. There is a critical need for a system that allows seniors to live independently while ensuring their safety and health are constantly monitored.
 
-Our primary objective is to enhance the quality of life for seniors while providing peace of mind to their families and caregivers through continuous, intelligent monitoring.
+### Real-World Impact
+**CareNest** bridges the gap between independent living and necessary medical oversight. By leveraging **Ambient Assisted Living (AAL)** technologies, the system minimizes hospital readmissions, detects emergencies instantly, and provides immense peace of mind to families and caregivers. 
 
-## ✨ Key Features
+### Research & Healthcare Relevance
+Developed as a robust university capstone project, CareNest implements concepts from modern gerontology and smart-home IoT. It utilizes a microservices-inspired architecture to handle real-time sensor streams (fall detection, temperature, motion) making it highly relevant for clinical trials, smart hospitals, and modern assisted living facilities.
 
-* **Real-time Health Monitoring:** Continuous synchronization of vital data and environmental metrics.
-* **Intelligent Alert Management:** Automated threshold-based alerts dispatched instantly via Firebase Cloud Messaging.
-* **Role-Based Access Control:** Distinct interfaces tailored for Elderly, Caregivers, and Administrators.
-* **Ambient Sensor Integration:** Support for smart home sensors detecting motion, temperature, and anomalies.
-* **Secure Authentication:** Multi-factor and OAuth support utilizing Firebase Authentication.
-* **Responsive Admin Dashboard:** A React-based portal for managing users, reviewing analytics, and configuring system parameters.
+---
 
-## 🛠 Tech Stack
+## ✨ Project Highlights & Key Achievements
+
+- 🔄 **Real-Time Monitoring:** Sub-second latency data synchronization across all clients using **Firestore** and **WebSockets**.
+- 📡 **IoT Integration:** Seamless hardware-software handshakes via **MQTT** protocols to process ambient sensor data.
+- 📱 **Cross-Platform Mobile App:** A unified, accessible Flutter application optimized for seniors and detailed enough for caregivers.
+- 🛡️ **Role-Based Admin System:** A secure React web portal for administrators to manage users, devices, and analyze health trends.
+- 🚨 **Emergency Alert Workflow:** Automated threshold-based alert dispatch system utilizing Firebase Cloud Messaging (FCM).
+
+---
+
+## 🛠 Tech Stack & Integration
+
+*(Keywords: `Flutter`, `React.js`, `Node.js`, `Firebase Authentication`, `Firestore`, `MQTT`, `Cross-platform development`, `Ambient Assisted Living`, `IoT healthcare system`, `Responsive admin dashboard`, `Real-time monitoring`)*
 
 | Domain | Technology | Description |
 | :--- | :--- | :--- |
-| **Frontend (Mobile)** | Flutter, Dart | Cross-platform mobile application for Elderly & Caregivers |
-| **Frontend (Web)** | React.js | Responsive Admin Dashboard |
-| **Backend & APIs** | Node.js, Express.js | RESTful APIs and webhook handlers |
-| **Database & Real-time** | Firebase Firestore | NoSQL database with real-time listeners |
-| **Authentication** | Firebase Auth | Secure user identity management |
-| **Deployment** | Vercel, Render | Automated CI/CD and hosting infrastructure |
+| **Mobile App** | Flutter, Dart | Cross-platform application tailored for Elderly & Caregivers. |
+| **Admin Portal** | React.js, Tailwind CSS | Responsive, data-rich dashboard for system administrators. |
+| **Backend API** | Node.js, Express.js | RESTful APIs, webhook handlers, and business logic execution. |
+| **Real-time Engine** | Firebase Firestore | NoSQL cloud database with real-time state listeners. |
+| **Authentication** | Firebase Auth | Secure identity management (OAuth, Multi-factor). |
+| **IoT Comm.** | MQTT / Mosquitto | Lightweight messaging protocol for sensor data streams. |
 
-## 📐 System Architecture
+---
 
-The CareNest architecture follows a decoupled, microservices-oriented approach ensuring high availability and scalability:
+## ⚙️ System Requirements
 
-1. **Mobile Client (Flutter):** Connects directly to Firebase via WebSockets for real-time data sync and listens for push notifications.
-2. **Web Portal (React):** Communicates with the Node.js backend for administrative actions and aggregates Firestore data.
-3. **Backend Service (Node/Express):** Hosted on Render, this service manages heavy data processing, external API integrations, and secure administrative operations.
-4. **Data Layer (Firebase):** Acts as the single source of truth, facilitating real-time updates across all connected clients.
+| Component | Minimum Version | Notes |
+| :--- | :--- | :--- |
+| **Flutter SDK** | 3.19.0+ | Required for mobile client compilation. |
+| **Node.js** | v18.x (LTS) | Required for the backend and Admin portal. |
+| **Firebase** | Blaze Plan | Required for Cloud Functions & unlimited Firestore reads. |
+| **OS Targets** | iOS 12.0+, Android 8.0+ | Mobile app supported platforms. |
 
-## 📂 Repository Structure
+---
 
-```text
-CareNest/
-├── lib/                      # Flutter mobile application source code
-│   ├── core/                 # Core services, themes, and utilities
-│   ├── models/               # Data models and serialization
-│   ├── screens/              # UI screens (Elderly, Caregiver, etc.)
-│   └── widgets/              # Reusable UI components
-├── assets/                   # Static assets and images
-│   └── screenshots/          # Application UI showcases
-├── docs/                     # Project documentation
-│   └── architecture/         # System design diagrams
-├── .github/                  # GitHub templates and workflows
-└── README.md                 # Project documentation
-```
+## 📐 Architecture Overview
 
-## 📸 Screenshots
+The CareNest platform is designed for high availability and fault tolerance, separating concerns across distinct layers:
+
+1. **The Edge (IoT Sensors):** PIR, Temp, and health monitors publish telemetry data.
+2. **Data Layer (Firebase/Firestore):** Acts as the centralized, real-time single source of truth.
+3. **Application Layer (Flutter):** Subscribes to document snapshots to render UI dynamically based on the elder's state.
+4. **Administrative Layer (React & Node):** Handles heavy aggregation, user management, and secure webhook processing.
 
 <div align="center">
-  <img src="assets/screenshots/landing.png" alt="Landing Page" width="200" style="margin: 10px;"/>
-  <img src="assets/screenshots/login.png" alt="Login" width="200" style="margin: 10px;"/>
-  <img src="assets/screenshots/dashboard.png" alt="Dashboard" width="200" style="margin: 10px;"/>
-  <br/>
-  <img src="assets/screenshots/emergency-alerts.png" alt="Emergency Alerts" width="200" style="margin: 10px;"/>
-  <img src="assets/screenshots/notifications.png" alt="Notifications" width="200" style="margin: 10px;"/>
-  <img src="assets/screenshots/sensor-monitoring.png" alt="Sensor Monitoring" width="200" style="margin: 10px;"/>
+  <img src="assets/architecture/system-design-placeholder.png" alt="Architecture Diagram" width="80%" style="border-radius:10px; margin-top:20px;"/>
+  <p><i>Refer to the <a href="./docs/system-design.md">Detailed System Design</a> for comprehensive diagrams.</i></p>
 </div>
+
+---
+
+## 📊 Repository Statistics & Engineering Metrics
+
+- **Architecture Style:** Decoupled Client-Server with Event-Driven Data Synchronization.
+- **Scalability:** Stateless backend APIs (Node.js) horizontally scalable on Render; Serverless scaling for database (Firestore).
+- **Security Considerations:** Enforced Firestore Security Rules, HTTPS/WSS encryption in transit, JWT-based authentication.
+
+---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 1. Prerequisites
+Ensure your development environment is prepared:
+* [Flutter SDK](https://docs.flutter.dev/get-started/install) installed and added to PATH.
+* [Node.js](https://nodejs.org/) installed.
+* Firebase CLI installed (`npm install -g firebase-tools`).
 
-Ensure you have the following installed:
-* [Flutter SDK](https://docs.flutter.dev/get-started/install) (latest stable)
-* [Node.js & npm](https://nodejs.org/) (v16+)
-* Firebase CLI (`npm install -g firebase-tools`)
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com/eldhoaby/CareNest-App.git
+cd CareNest-App
 
-### Installation & Local Setup
+# Fetch Flutter dependencies
+flutter pub get
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/eldhoaby/CareNest-App.git
-   cd CareNest-App
-   ```
+### 3. Environment Configuration
+Create a `.env` file in the root of your project:
+```env
+FIREBASE_API_KEY=your_api_key
+FIREBASE_PROJECT_ID=carenest-app
+FIREBASE_SENDER_ID=your_sender_id
+# Add other required variables as specified in /docs/setup.md
+```
 
-2. **Setup Mobile App (Flutter)**
-   ```bash
-   flutter pub get
-   flutter run
-   ```
+### 4. Running Locally
+```bash
+# Run the mobile application
+flutter run
+```
 
-3. **Configure Environment Variables**
-   Create a `.env` file in the root directory and add your Firebase credentials:
-   ```env
-   FIREBASE_API_KEY=your_api_key
-   FIREBASE_PROJECT_ID=carenest-app
-   FIREBASE_SENDER_ID=your_sender_id
-   ```
+---
 
 ## 📦 Deployment
 
-### Mobile Application
-The Flutter application can be built for production using standard build commands:
-```bash
-flutter build apk --release    # For Android
-flutter build ipa --release    # For iOS
-```
+CareNest is built for modern cloud-native deployment:
 
-### Backend & Admin Portal
-* **Frontend:** Deployed via **Vercel** with automatic deployments triggered on the `main` branch.
-* **Backend:** Hosted on **Render**, running the Express.js server connected to Firebase Admin SDK.
+* **Frontend Admin Portal:** Deployed via **Vercel** with continuous integration on the `main` branch.
+* **Backend API:** Hosted securely on **Render** (Node.js service).
+* **Mobile App:** Configured for CI/CD generation of App Bundles (AAB) and IPAs.
 
-## 🔒 Security Considerations
+Detailed deployment guides can be found in `docs/deployment.md`.
 
-* **Data Encryption:** All data transmitted between clients and the cloud is encrypted via HTTPS/TLS.
-* **Firestore Security Rules:** Strict rules are implemented to ensure users can only access their specific data.
-* **Authentication:** Passwords are never stored; Firebase Auth handles all secure token exchanges.
+---
 
-## 🛣 Future Roadmap
+## 📸 Application Showcases
 
-- [ ] Integration with wearable IoT devices (Apple Watch, Fitbit).
-- [ ] Machine Learning models for predictive health anomaly detection.
-- [ ] Voice-activated commands via Google Assistant & Siri.
-- [ ] Offline-first data caching capabilities.
+*(High-fidelity screenshots of the application in action)*
 
-## 🤝 Contributing
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Welcome Screen</b></td>
+      <td align="center"><b>Role Selection</b></td>
+      <td align="center"><b>Login Page</b></td>
+    </tr>
+    <tr>
+      <td><img src="assets/screenshots/welcome.png.jpeg" width="250" alt="Welcome Screen" /></td>
+      <td><img src="assets/screenshots/roleselection.png.jpeg" width="250" alt="Role Selection" /></td>
+      <td><img src="assets/screenshots/loginppage.png.jpeg" width="250" alt="Login Page" /></td>
+    </tr>
+    <tr>
+      <td align="center"><b>Patient Info</b></td>
+      <td align="center"><b>Emergency Alert</b></td>
+      <td align="center"><b>Alert Resolved</b></td>
+    </tr>
+    <tr>
+      <td><img src="assets/screenshots/patientinfo.png.jpeg" width="250" alt="Patient Info" /></td>
+      <td><img src="assets/screenshots/alert.png.jpeg" width="250" alt="Emergency Alert" /></td>
+      <td><img src="assets/screenshots/alerresolve.png.jpeg" width="250" alt="Alert Resolved" /></td>
+    </tr>
+  </table>
+</div>
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+---
 
-Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines.
+## 📚 Comprehensive Documentation
+
+Explore the `docs/` folder for in-depth technical specifications:
+
+- 🗺️ [System Design & Architecture](docs/system-design.md)
+- 🗄️ [Database Schema](docs/database-schema.md)
+- 🔒 [Security Architecture](docs/security-architecture.md)
+- ⚙️ [Setup Guide](docs/setup.md)
+- 🚀 [Deployment Guide](docs/deployment.md)
+- 📡 [IoT Architecture](docs/iot-architecture.md)
+
+---
+
+## 🤝 Contributing & Community
+
+We believe in the power of open source to drive healthcare innovation forward. 
+Please read our [CONTRIBUTING.md](CONTRIBUTING.md) to learn how to get involved, and adhere to our [CODE OF CONDUCT](CODE_OF_CONDUCT.md).
+
+For vulnerability disclosures, refer to our [SECURITY.md](SECURITY.md).
+
+---
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgements
-
-* [Flutter Documentation](https://flutter.dev/docs)
-* [Firebase Features](https://firebase.google.com/docs)
-* [React UI Components](https://reactjs.org/)
-
----
 <div align="center">
-  <b>Built with ❤️ for a safer, smarter tomorrow.</b>
+  <b>Architected with ❤️ for a safer, smarter tomorrow.</b>
 </div>
