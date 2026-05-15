@@ -12,7 +12,7 @@
 
 *An enterprise-grade, real-time healthcare monitoring platform designed to empower elderly care through ambient intelligence, IoT integration, and responsive data analytics.*
 
-[Report Bug](https://github.com/eldhoaby/CareNest-App/issues) · [Request Feature](https://github.com/eldhoaby/CareNest-App/issues) · [Explore Documentation](./docs/README.md)
+[Download App](https://github.com/eldhoaby/CareNest-App/releases/latest) · [Report Bug](https://github.com/eldhoaby/CareNest-App/issues) · [Request Feature](https://github.com/eldhoaby/CareNest-App/issues) · [Explore Documentation](./docs/README.md)
 
 </div>
 
@@ -158,13 +158,19 @@ flowchart TD
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
+### 1. 📲 Download & Install (For Users)
+The easiest way to try CareNest is to download the latest release:
+1. Download the `app-release.apk` from our [Latest Releases](https://github.com/eldhoaby/CareNest-App/releases/latest).
+2. Transfer the file to your Android device.
+3. Tap the file to install (you may need to enable "Install unknown apps" in Android settings).
+
+### 2. Prerequisites (For Developers)
 Ensure your development environment is prepared:
 * [Flutter SDK](https://docs.flutter.dev/get-started/install) installed and added to PATH.
 * [Node.js](https://nodejs.org/) installed.
 * Firebase CLI installed (`npm install -g firebase-tools`).
 
-### 2. Installation
+### 3. Installation from Source
 ```bash
 # Clone the repository
 git clone https://github.com/eldhoaby/CareNest-App.git
@@ -174,7 +180,7 @@ cd CareNest-App
 flutter pub get
 ```
 
-### 3. Environment Configuration
+### 4. Environment Configuration
 Create a `.env` file in the root of your project:
 ```env
 FIREBASE_API_KEY=your_api_key
@@ -183,7 +189,7 @@ FIREBASE_SENDER_ID=your_sender_id
 # Add other required variables as specified in /docs/setup.md
 ```
 
-### 4. Running Locally
+### 5. Running Locally
 ```bash
 # Run the mobile application
 flutter run
